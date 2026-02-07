@@ -3,7 +3,12 @@ import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY)
+}
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,6 +39,7 @@ export async function POST() {
     )
   }
 
+  const stripe = getStripe()
   await stripe.subscriptions.cancel(sub.external_subscription_id)
   // Stripe webhook will update the status
 

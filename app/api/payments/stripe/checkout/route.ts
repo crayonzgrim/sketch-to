@@ -3,7 +3,12 @@ import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { PLAN_PRICES, type PlanKey } from '@/lib/constants'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY)
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -24,6 +29,7 @@ export async function POST(req: NextRequest) {
 
   const origin = req.headers.get('origin') ?? 'http://localhost:3000'
 
+  const stripe = getStripe()
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price: priceInfo.stripePriceId, quantity: 1 }],
