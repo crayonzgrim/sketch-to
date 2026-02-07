@@ -1,65 +1,270 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import { Wand2 } from "lucide-react";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { SketchUploader } from "@/components/sketch-uploader";
+import { StyleSelector } from "@/components/style-selector";
+import { ImagePreview } from "@/components/image-preview";
+import { DownloadOptions } from "@/components/download-options";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { UsageIndicator } from "@/components/usage-indicator";
+import { fileToBase64 } from "@/lib/image-utils";
+import { createClient } from "@/lib/supabase/client";
+import { useLoginDialog } from "@/components/auth/login-dialog";
+import { useRouter } from "next/navigation";
+import type { StyleType } from "@/lib/prompts";
+
+type Step = "upload" | "style" | "result";
 
 export default function Home() {
+  const [step, setStep] = useState<Step>("upload");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<StyleType | null>(null);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedMimeType, setGeneratedMimeType] = useState("image/png");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [usageKey, setUsageKey] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{ used: number; limit: number } | null>(null);
+  const { openLoginDialog } = useLoginDialog();
+  const router = useRouter();
+
+  const handleImageSelect = useCallback((file: File, preview: string) => {
+    setImageFile(file);
+    setImagePreview(preview);
+    setGeneratedImage(null);
+    setError(null);
+    setStep("style");
+  }, []);
+
+  const handleClearImage = useCallback(() => {
+    setImageFile(null);
+    setImagePreview(null);
+    setSelectedStyle(null);
+    setGeneratedImage(null);
+    setError(null);
+    setStep("upload");
+  }, []);
+
+  const handleStyleSelect = useCallback((style: StyleType) => {
+    setSelectedStyle(style);
+    setError(null);
+  }, []);
+
+  const handleGenerate = useCallback(async () => {
+    if (!imageFile || !selectedStyle) return;
+
+    // Check if user is logged in
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      openLoginDialog();
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    setStep("result");
+
+    try {
+      const base64 = await fileToBase64(imageFile);
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: imageFile.type,
+          style: selectedStyle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        if (response.status === 429) {
+          setLimitInfo({ used: data.used, limit: data.limit });
+          setShowLimitDialog(true);
+          setStep("style");
+          return;
+        }
+        throw new Error(data.error || "Generation failed");
+      }
+
+      setGeneratedImage(data.image);
+      setGeneratedMimeType(data.mimeType || "image/png");
+      setUsageKey((prev) => prev + 1);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [imageFile, selectedStyle, openLoginDialog]);
+
+  const handleRegenerate = useCallback(() => {
+    handleGenerate();
+  }, [handleGenerate]);
+
+  const handleStartOver = useCallback(() => {
+    handleClearImage();
+  }, [handleClearImage]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="container mx-auto max-w-3xl px-4 py-8">
+        {/* Usage indicator */}
+        <div className="mb-4 flex justify-end">
+          <UsageIndicator refreshKey={usageKey} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Step indicators */}
+        <div className="mb-8 flex items-center justify-center gap-2">
+          {[
+            { key: "upload", label: "1. Upload" },
+            { key: "style", label: "2. Style" },
+            { key: "result", label: "3. Result" },
+          ].map(({ key, label }, i) => (
+            <div key={key} className="flex items-center gap-2">
+              {i > 0 && <div className="h-px w-8 bg-border" />}
+              <span
+                className={`text-sm font-medium ${
+                  step === key
+                    ? "text-primary"
+                    : (key === "style" && step === "result") ||
+                        (key === "upload" &&
+                          (step === "style" || step === "result"))
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/50"
+                }`}
+              >
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
+
+        {/* Step 1: Upload */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-xl font-semibold">Upload your sketch</h2>
+            <p className="text-sm text-muted-foreground">
+              Drop a rough sketch or drawing and we&apos;ll transform it
+            </p>
+          </div>
+          <SketchUploader
+            onImageSelect={handleImageSelect}
+            selectedImage={imagePreview}
+            onClear={handleClearImage}
+          />
+        </section>
+
+        {/* Step 2: Style Selection */}
+        {(step === "style" || step === "result") && imagePreview && (
+          <>
+            <Separator className="my-8" />
+            <section className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold">Choose a style</h2>
+                <p className="text-sm text-muted-foreground">
+                  Select how you want your sketch transformed
+                </p>
+              </div>
+              <StyleSelector
+                selectedStyle={selectedStyle}
+                onStyleSelect={handleStyleSelect}
+              />
+              {selectedStyle && step === "style" && (
+                <div className="flex justify-center">
+                  <Button
+                    size="lg"
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                  >
+                    <Wand2 className="mr-2 h-5 w-5" />
+                    Generate Image
+                  </Button>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* Step 3: Result */}
+        {step === "result" && (
+          <>
+            <Separator className="my-8" />
+            <section className="space-y-6">
+              <ImagePreview
+                originalImage={imagePreview}
+                generatedImage={generatedImage}
+                generatedMimeType={generatedMimeType}
+                isGenerating={isGenerating}
+                onRegenerate={handleRegenerate}
+              />
+
+              {error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
+              {generatedImage && (
+                <DownloadOptions
+                  generatedImage={generatedImage}
+                  generatedMimeType={generatedMimeType}
+                />
+              )}
+
+              <div className="flex justify-center">
+                <Button variant="outline" onClick={handleStartOver}>
+                  Start Over
+                </Button>
+              </div>
+            </section>
+          </>
+        )}
       </main>
+
+      <Footer />
+
+      {/* Usage Limit Alert Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Daily Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              You&apos;ve used all {limitInfo?.limit} generations for today
+              ({limitInfo?.used}/{limitInfo?.limit}).
+              Upgrade your plan to get more daily generations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push("/pricing")}>
+              View Pricing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
