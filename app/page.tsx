@@ -127,10 +127,10 @@ export default function Home() {
   }, [handleClearImage]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
 
-      <main className="container mx-auto max-w-3xl px-4 py-8">
+      <main className="container mx-auto max-w-3xl flex-1 px-4 py-8">
         {/* Usage indicator */}
         <div className="mb-4 flex justify-end">
           <UsageIndicator refreshKey={usageKey} />
