@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import {
   STYLE_OPTIONS,
   STYLE_CATEGORIES,
   type StyleType,
 } from "@/lib/prompts";
+
+const ADMIN_EMAIL = "cappu159@gmail.com";
 
 interface StyleSelectorProps {
   selectedStyle: StyleType | null;
@@ -19,12 +23,42 @@ export function StyleSelector({
   onStyleSelect,
 }: StyleSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<
-    "icon" | "illustration" | "design"
+    "icon" | "illustration" | "design" | "character" | "artistic"
   >("icon");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string>("free");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email ?? null);
+        const { data } = await supabase
+          .from("profiles")
+          .select("plan")
+          .eq("id", user.id)
+          .single();
+        setUserPlan(data?.plan ?? "free");
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const isAdmin = userEmail === ADMIN_EMAIL;
+  const hasPaidPlan = userPlan !== "free";
 
   const filteredStyles = STYLE_OPTIONS.filter(
     (s) => s.category === activeCategory
   );
+
+  const isStyleAccessible = (tier: "free" | "pro") => {
+    if (isAdmin) return true;
+    if (hasPaidPlan) return true;
+    return tier === "free";
+  };
 
   return (
     <div className="space-y-4">
@@ -53,35 +87,66 @@ export function StyleSelector({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {filteredStyles.map((style) => {
           const isSelected = selectedStyle === style.id;
+          const accessible = isStyleAccessible(style.tier);
 
           return (
-            <Card
-              key={style.id}
-              className={cn(
-                "cursor-pointer transition-all hover:shadow-md",
-                isSelected
-                  ? "border-primary bg-primary/5 ring-2 ring-primary"
-                  : "hover:border-primary/50"
-              )}
-              onClick={() => onStyleSelect(style.id)}
-            >
-              <CardContent className="flex flex-col items-center gap-1.5 p-3">
-                <span className="text-2xl" role="img" aria-label={style.name}>
-                  {style.emoji}
-                </span>
-                <p
-                  className={cn(
-                    "text-sm font-medium",
-                    isSelected && "text-primary"
+            <div key={style.id} className="group relative">
+              <Card
+                className={cn(
+                  "transition-all",
+                  accessible
+                    ? "cursor-pointer hover:shadow-md"
+                    : "cursor-not-allowed opacity-50",
+                  isSelected
+                    ? "border-primary bg-primary/5 ring-2 ring-primary"
+                    : accessible
+                      ? "hover:border-primary/50"
+                      : ""
+                )}
+                onClick={() => {
+                  if (accessible) onStyleSelect(style.id);
+                }}
+              >
+                <CardContent className="relative flex flex-col items-center gap-1.5 p-3">
+                  {!accessible && (
+                    <div className="absolute right-1.5 top-1.5">
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
                   )}
-                >
-                  {style.name}
-                </p>
-                <p className="text-center text-[11px] leading-tight text-muted-foreground">
-                  {style.description}
-                </p>
-              </CardContent>
-            </Card>
+                  <span
+                    className="text-2xl"
+                    role="img"
+                    aria-label={style.name}
+                  >
+                    {style.emoji}
+                  </span>
+                  <p
+                    className={cn(
+                      "text-sm font-medium",
+                      isSelected && "text-primary"
+                    )}
+                  >
+                    {style.name}
+                  </p>
+                  <p className="text-center text-[11px] leading-tight text-muted-foreground">
+                    {style.description}
+                  </p>
+                  {!accessible && (
+                    <span className="mt-0.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      PRO
+                    </span>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Hover tooltip for locked styles */}
+              {!accessible && (
+                <div className="pointer-events-none absolute -top-10 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  Upgrade to PRO to unlock this style
+                  <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-foreground" />
+                </div>
+              )}
+            </div>
           );
         })}
       </div>

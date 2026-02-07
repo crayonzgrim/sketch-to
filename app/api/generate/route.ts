@@ -5,6 +5,7 @@ import { type StyleType, STYLE_OPTIONS } from "@/lib/prompts";
 import { checkUsageAllowed, incrementUsage } from "@/lib/usage";
 
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
+const ADMIN_EMAIL = "cappu159@gmail.com";
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,10 +50,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!STYLE_OPTIONS.find((s) => s.id === style)) {
+    const styleOption = STYLE_OPTIONS.find((s) => s.id === style);
+    if (!styleOption) {
       return NextResponse.json(
         { success: false, error: `Invalid style: ${style}` },
         { status: 400 }
+      );
+    }
+
+    // 3.5. Style tier access check
+    const isAdmin = user.email === ADMIN_EMAIL;
+    const hasPaidPlan = usage.plan !== "free";
+    if (styleOption.tier === "pro" && !isAdmin && !hasPaidPlan) {
+      return NextResponse.json(
+        { success: false, error: "This style requires a PRO plan. Please upgrade to access it." },
+        { status: 403 }
       );
     }
 
