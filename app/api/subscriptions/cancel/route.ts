@@ -34,20 +34,8 @@ export async function POST() {
     )
   }
 
-  if (sub.provider === 'stripe') {
-    await stripe.subscriptions.cancel(sub.external_subscription_id)
-    // Stripe webhook will update the status
-  } else {
-    // Toss: mark as cancelled, cron job will skip
-    await supabaseAdmin
-      .from('subscriptions')
-      .update({
-        status: 'cancelled',
-        cancelled_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', sub.id)
-  }
+  await stripe.subscriptions.cancel(sub.external_subscription_id)
+  // Stripe webhook will update the status
 
   return NextResponse.json({ success: true })
 }
