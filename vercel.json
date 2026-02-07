@@ -1,8 +1,2 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/toss-billing",
-      "schedule": "0 0 * * *"
-    }
-  ]
 }
