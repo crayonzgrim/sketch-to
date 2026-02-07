@@ -16,7 +16,13 @@ export function Footer() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Contact</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Contact</p>
+              <p className="text-xs text-muted-foreground">
+                Feature requests &amp; inquiries welcome
+              </p>
+
+            </div>
             <a
               href="mailto:crayonzgrim@gmail.com"
               className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
@@ -24,9 +30,6 @@ export function Footer() {
               <Mail className="h-3.5 w-3.5" />
               crayonzgrim@gmail.com
             </a>
-            <p className="text-xs text-muted-foreground">
-              Feature requests &amp; inquiries welcome
-            </p>
           </div>
         </div>
 
