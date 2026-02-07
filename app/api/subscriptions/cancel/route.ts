@@ -10,10 +10,12 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY)
 }
 
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabaseAdmin() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function POST() {
   const supabase = await createClient()
@@ -25,7 +27,7 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: sub } = await supabaseAdmin
+  const { data: sub } = await getSupabaseAdmin()
     .from('subscriptions')
     .select('*')
     .eq('user_id', user.id)

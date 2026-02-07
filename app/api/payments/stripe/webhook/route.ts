@@ -9,10 +9,12 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY)
 }
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 function getPeriodDates() {
   const now = new Date()
@@ -29,6 +31,7 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get('stripe-signature')!
 
   const stripe = getStripe()
+  const supabaseAdmin = getSupabaseAdmin()
   let event: Stripe.Event
   try {
     event = stripe.webhooks.constructEvent(
