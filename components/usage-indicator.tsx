@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { getPlanLimit, PLAN_PRICES } from '@/lib/constants'
+import { getPlanLimit, PLAN_PRICES, type PlanKey } from '@/lib/constants'
 
 export function UsageIndicator({ refreshKey }: { refreshKey?: number }) {
   const [usage, setUsage] = useState<{ used: number; limit: number; plan: string } | null>(null)
@@ -40,7 +40,7 @@ export function UsageIndicator({ refreshKey }: { refreshKey?: number }) {
   const remaining = usage.limit - usage.used
   const isLow = remaining <= Math.ceil(usage.limit * 0.2)
 
-  const planLabel = PLAN_PRICES[usage.plan]?.label ?? 'Free'
+  const planLabel = PLAN_PRICES[usage.plan as PlanKey]?.label ?? 'Free'
 
   return (
     <div className="flex items-center gap-2">
