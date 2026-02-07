@@ -19,19 +19,19 @@ export const PLAN_PRICES: Record<
   free: { monthly: 0, monthlyKrw: 0, label: 'Free' },
   silver: {
     monthly: 9.99,
-    monthlyKrw: 9900,
+    monthlyKrw: 13900,
     label: 'Silver',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SILVER,
   },
   gold: {
     monthly: 29.99,
-    monthlyKrw: 29900,
+    monthlyKrw: 39900,
     label: 'Gold',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_GOLD,
   },
   platinum: {
     monthly: 79.99,
-    monthlyKrw: 79900,
+    monthlyKrw: 109900,
     label: 'Platinum',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PLATINUM,
   },
