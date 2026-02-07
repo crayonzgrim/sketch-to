@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -11,10 +12,29 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Check } from 'lucide-react'
-import { PLAN_LIMITS, PLAN_PRICES } from '@/lib/constants'
+import { Check, CreditCard, Loader2 } from 'lucide-react'
+import { PLAN_LIMITS, PLAN_PRICES, type PlanKey } from '@/lib/constants'
 
-const plans = [
+declare global {
+  interface Window {
+    TossPayments?: (clientKey: string) => {
+      payment: (opts: { customerKey: string }) => {
+        requestBillingAuth: (
+          method: string,
+          opts: Record<string, unknown>
+        ) => Promise<void>
+      }
+    }
+  }
+}
+
+const plans: {
+  key: PlanKey
+  icon: string
+  description: string
+  featured: boolean
+  features: string[]
+}[] = [
   {
     key: 'free',
     icon: '🎨',
@@ -67,11 +87,68 @@ const plans = [
   },
 ]
 
-export function PricingCards({ currentPlan }: { currentPlan?: string }) {
+export function PricingCards({
+  currentPlan,
+  isLoggedIn,
+}: {
+  currentPlan?: string
+  isLoggedIn: boolean
+}) {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  async function handleStripeCheckout(plan: PlanKey) {
+    setLoading(`stripe-${plan}`)
+    try {
+      const res = await fetch('/api/payments/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+      const { url, error } = await res.json()
+      if (error) throw new Error(error)
+      window.location.href = url
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Payment failed')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleTossCheckout(plan: PlanKey) {
+    setLoading(`toss-${plan}`)
+    try {
+      const res = await fetch('/api/payments/toss/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
+      const tossPayments = window.TossPayments?.(clientKey)
+      if (!tossPayments) throw new Error('Toss SDK not loaded')
+
+      const payment = tossPayments.payment({ customerKey: data.customerKey })
+      await payment.requestBillingAuth('CARD', {
+        amount: { currency: 'KRW', value: data.amount },
+        orderId: data.orderId,
+        orderName: data.orderName,
+        successUrl: data.successUrl,
+        failUrl: data.failUrl,
+      })
+    } catch (e) {
+      if (e instanceof Error && e.message.includes('USER_CANCEL')) return
+      alert(e instanceof Error ? e.message : 'Payment failed')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
       {plans.map(({ key, icon, description, featured, features }) => {
-        const { monthly, label } = PLAN_PRICES[key]
+        const { monthly, monthlyKrw, label } = PLAN_PRICES[key]
         const isCurrent = currentPlan === key
 
         return (
@@ -94,17 +171,28 @@ export function PricingCards({ currentPlan }: { currentPlan?: string }) {
                 <span className="text-2xl">{icon}</span>
                 <CardTitle className="text-xl">{label}</CardTitle>
               </div>
-              <CardDescription className="text-sm">{description}</CardDescription>
+              <CardDescription className="text-sm">
+                {description}
+              </CardDescription>
 
               <div className="pt-3">
                 {monthly === 0 ? (
-                  <span className="text-4xl font-bold tracking-tight">Free</span>
+                  <span className="text-4xl font-bold tracking-tight">
+                    Free
+                  </span>
                 ) : (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold tracking-tight">
-                      ${monthly}
-                    </span>
-                    <span className="text-sm text-muted-foreground">/month</span>
+                  <div className="space-y-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold tracking-tight">
+                        ${monthly}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        /month
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      ₩{monthlyKrw.toLocaleString()}/월
+                    </div>
                   </div>
                 )}
               </div>
@@ -115,7 +203,10 @@ export function PricingCards({ currentPlan }: { currentPlan?: string }) {
             <CardContent className="flex-1 pt-6">
               <ul className="space-y-3">
                 {features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm">
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2.5 text-sm"
+                  >
                     <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <span>{feature}</span>
                   </li>
@@ -123,7 +214,7 @@ export function PricingCards({ currentPlan }: { currentPlan?: string }) {
               </ul>
             </CardContent>
 
-            <CardFooter className="pt-2">
+            <CardFooter className="pt-2 flex flex-col gap-2">
               {isCurrent ? (
                 <Button variant="secondary" className="w-full" disabled>
                   Current Plan
@@ -132,16 +223,43 @@ export function PricingCards({ currentPlan }: { currentPlan?: string }) {
                 <Button variant="ghost" className="w-full" disabled>
                   Default
                 </Button>
-              ) : (
+              ) : !isLoggedIn ? (
                 <Button
                   variant={featured ? 'default' : 'outline'}
-                  className="w-full cursor-pointer"
-                  onClick={() =>
-                    alert('Coming Soon! Payment will be available shortly.')
-                  }
+                  className="w-full"
+                  disabled
                 >
-                  Coming Soon
+                  Sign in to subscribe
                 </Button>
+              ) : (
+                <>
+                  <Button
+                    variant={featured ? 'default' : 'outline'}
+                    className="w-full cursor-pointer"
+                    disabled={loading !== null}
+                    onClick={() => handleStripeCheckout(key)}
+                  >
+                    {loading === `stripe-${key}` ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <CreditCard className="h-4 w-4 mr-2" />
+                    )}
+                    Pay with Card (International)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    disabled={loading !== null}
+                    onClick={() => handleTossCheckout(key)}
+                  >
+                    {loading === `toss-${key}` ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <span className="mr-2 text-base">🇰🇷</span>
+                    )}
+                    국내 결제
+                  </Button>
+                </>
               )}
             </CardFooter>
           </Card>

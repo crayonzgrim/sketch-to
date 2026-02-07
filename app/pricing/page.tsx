@@ -3,6 +3,7 @@ import { Header } from '@/components/header'
 import { PricingCards } from '@/components/pricing/pricing-cards'
 import { createClient } from '@/lib/supabase/server'
 import { Sparkles } from 'lucide-react'
+import Script from 'next/script'
 
 export default async function PricingPage() {
   const supabase = await createClient()
@@ -22,6 +23,10 @@ export default async function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Script
+        src="https://js.tosspayments.com/v2/standard"
+        strategy="beforeInteractive"
+      />
       <Header />
       <main className="flex flex-col items-center gap-12 py-20 px-4">
         <div className="text-center space-y-4 max-w-2xl">
@@ -35,11 +40,11 @@ export default async function PricingPage() {
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-muted-foreground">
-            Start for free. Upgrade when you need more generations.
-            No hidden fees, cancel anytime.
+            Start for free. Upgrade when you need more generations. No hidden
+            fees, cancel anytime.
           </p>
         </div>
-        <PricingCards currentPlan={currentPlan} />
+        <PricingCards currentPlan={currentPlan} isLoggedIn={!!user} />
         <p className="text-sm text-muted-foreground text-center max-w-md">
           All plans include access to every style. <br />
           Usage resets daily at midnight UTC.
