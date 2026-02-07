@@ -91,28 +91,6 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link href="/pricing">Pricing</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={async () => {
-                    if (
-                      !confirm(
-                        'Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.'
-                      )
-                    )
-                      return
-                    const res = await fetch('/api/subscriptions/cancel', {
-                      method: 'POST',
-                    })
-                    if (res.ok) {
-                      alert('Subscription cancelled successfully.')
-                      router.refresh()
-                    } else {
-                      const data = await res.json()
-                      alert(data.error ?? 'Failed to cancel subscription.')
-                    }
-                  }}
-                >
-                  Cancel Subscription
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   Sign out
