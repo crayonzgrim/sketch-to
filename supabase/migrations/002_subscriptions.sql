@@ -1,7 +1,7 @@
 -- ENUM types
 CREATE TYPE subscription_plan AS ENUM ('silver', 'gold', 'platinum');
 CREATE TYPE subscription_status AS ENUM ('pending', 'active', 'past_due', 'cancelled', 'expired');
-CREATE TYPE payment_provider AS ENUM ('stripe', 'toss');
+CREATE TYPE payment_provider AS ENUM ('stripe');
 
 -- subscriptions table
 CREATE TABLE subscriptions (
