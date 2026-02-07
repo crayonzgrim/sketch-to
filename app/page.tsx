@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UsageIndicator } from "@/components/usage-indicator";
+import { KakaoAdFit } from "@/components/ui/kakao-adfit";
 import { fileToBase64 } from "@/lib/image-utils";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from "@/components/auth/login-dialog";
@@ -129,6 +130,21 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
+
+      {/* 카카오 애드핏 - 모바일 상단 배너 */}
+      <div className="flex justify-center py-2 xl:hidden">
+        <KakaoAdFit unit="DAN-PCgGvqo856JhQXWz" width={320} height={100} />
+      </div>
+
+      {/* 카카오 애드핏 - 데스크탑 좌측 사이드바 */}
+      <div className="fixed left-4 top-1/2 z-20 hidden -translate-y-1/2 xl:block">
+        <KakaoAdFit unit="DAN-QOp1St1jjkkenvVA" width={160} height={600} />
+      </div>
+
+      {/* 카카오 애드핏 - 데스크탑 우측 사이드바 */}
+      <div className="fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 xl:block">
+        <KakaoAdFit unit="DAN-a3NsNEdvKBWNKd5I" width={160} height={600} />
+      </div>
 
       <main className="container mx-auto max-w-3xl flex-1 px-4 py-8">
         {/* Usage indicator */}
