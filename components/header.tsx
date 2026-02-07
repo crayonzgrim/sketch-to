@@ -1,9 +1,7 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { useLoginDialog } from '@/components/auth/login-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,10 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useLoginDialog } from '@/components/auth/login-dialog'
-import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
+import { Sparkles } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -49,15 +49,15 @@ export function Header() {
     .toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? '?'
 
   return (
-    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+        <Link href={'/'} className="flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold tracking-tight">SketchTo</span>
           <p className="ml-2 hidden text-sm text-muted-foreground sm:block">
             Sketch to Professional Image
           </p>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <Link
@@ -90,6 +90,28 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/pricing">Pricing</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        'Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.'
+                      )
+                    )
+                      return
+                    const res = await fetch('/api/subscriptions/cancel', {
+                      method: 'POST',
+                    })
+                    if (res.ok) {
+                      alert('Subscription cancelled successfully.')
+                      router.refresh()
+                    } else {
+                      const data = await res.json()
+                      alert(data.error ?? 'Failed to cancel subscription.')
+                    }
+                  }}
+                >
+                  Cancel Subscription
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
