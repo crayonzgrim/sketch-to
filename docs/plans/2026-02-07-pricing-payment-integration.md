@@ -946,7 +946,7 @@ export function PricingCards({
                     ) : (
                       <span className="mr-2 text-base">🇰🇷</span>
                     )}
-                    국내 결제
+                    토스 결제
                   </Button>
                 </>
               )}
