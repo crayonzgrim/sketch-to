@@ -1,6 +1,8 @@
 -- profiles table (auto-linked to auth.users via trigger)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  name TEXT,
   plan TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'silver', 'gold', 'platinum')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -45,7 +47,12 @@ CREATE POLICY "Users can update own usage"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id) VALUES (NEW.id);
+  INSERT INTO public.profiles (id, email, name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', '')
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
@@ -57,3 +64,6 @@ CREATE TRIGGER on_auth_user_created
 -- Index for fast usage lookups
 CREATE INDEX IF NOT EXISTS idx_daily_usage_user_date
   ON daily_usage(user_id, date);
+
+-- Index for fast email lookups
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
