@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import {
-  STYLE_OPTIONS,
   STYLE_CATEGORIES,
+  STYLE_OPTIONS,
   type StyleType,
 } from "@/lib/prompts";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+import { Lock } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const ADMIN_EMAIL = "cappu159@gmail.com";
 
@@ -76,7 +76,7 @@ export function StyleSelector({
             )}
           >
             <span className="block">{cat.name}</span>
-            <span className="block text-[11px] font-normal opacity-60">
+            <span className="block text-[10px] font-normal opacity-60">
               {cat.description}
             </span>
           </button>
@@ -93,7 +93,7 @@ export function StyleSelector({
             <div key={style.id} className="group relative">
               <Card
                 className={cn(
-                  "transition-all",
+                  "h-36 transition-all",
                   accessible
                     ? "cursor-pointer hover:shadow-md"
                     : "cursor-not-allowed opacity-50",
@@ -107,13 +107,13 @@ export function StyleSelector({
                   if (accessible) onStyleSelect(style.id);
                 }}
               >
-                <CardContent className="relative flex flex-col items-center gap-1.5 p-3 pt-4">
+                <CardContent className="relative flex h-full flex-col items-center justify-center gap-1.5 p-3">
                   {!accessible && (
                     <>
-                      <span className="absolute left-1.5 top-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <span className="absolute left-3 -top-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                         PRO
                       </span>
-                      <div className="absolute right-1.5 top-1.5">
+                      <div className="absolute right-3 -top-1">
                         <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     </>
