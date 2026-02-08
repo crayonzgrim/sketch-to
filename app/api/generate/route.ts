@@ -37,10 +37,11 @@ export async function POST(request: NextRequest) {
 
     // 3. Parse request
     const body = await request.json();
-    const { imageBase64, mimeType, style } = body as {
+    const { imageBase64, mimeType, style, customPrompt } = body as {
       imageBase64: string;
       mimeType: string;
       style: StyleType;
+      customPrompt?: string;
     };
 
     if (!imageBase64 || !style) {
@@ -83,10 +84,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Generate image
+    const sanitizedPrompt = customPrompt?.slice(0, 500);
     const result = await generateImage(
       imageBase64,
       mimeType || "image/png",
-      style
+      style,
+      sanitizedPrompt
     );
 
     // 5. Increment usage on success

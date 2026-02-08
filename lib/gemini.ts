@@ -11,7 +11,8 @@ export interface GenerateImageResult {
 export async function generateImage(
   base64Image: string,
   mimeType: string,
-  style: StyleType
+  style: StyleType,
+  customPrompt?: string
 ): Promise<GenerateImageResult> {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash-image",
@@ -21,7 +22,10 @@ export async function generateImage(
     },
   });
 
-  const prompt = getPromptForStyle(style);
+  let prompt = getPromptForStyle(style);
+  if (customPrompt) {
+    prompt += `\n\nAdditional user instructions:\n${customPrompt}`;
+  }
 
   const result = await model.generateContent([
     {

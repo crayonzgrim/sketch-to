@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Wand2 } from "lucide-react";
-import { Header } from "@/components/header";
+import { useLoginDialog } from "@/components/auth/login-dialog";
+import { DownloadOptions } from "@/components/download-options";
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+import { ImagePreview } from "@/components/image-preview";
 import { SketchUploader } from "@/components/sketch-uploader";
 import { StyleSelector } from "@/components/style-selector";
-import { ImagePreview } from "@/components/image-preview";
-import { DownloadOptions } from "@/components/download-options";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,13 +17,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { UsageIndicator } from "@/components/usage-indicator";
+import { Button } from "@/components/ui/button";
 import { KakaoAdFit } from "@/components/ui/kakao-adfit";
+import { Separator } from "@/components/ui/separator";
+import { UsageIndicator } from "@/components/usage-indicator";
 import { fileToBase64 } from "@/lib/image-utils";
-import { createClient } from "@/lib/supabase/client";
-import { useLoginDialog } from "@/components/auth/login-dialog";
-import { useRouter } from "next/navigation";
 import type { StyleType } from "@/lib/prompts";
+import { createClient } from "@/lib/supabase/client";
+import { Wand2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 type Step = "upload" | "style" | "result";
 
@@ -35,6 +35,7 @@ export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<StyleType | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedMimeType, setGeneratedMimeType] = useState("image/png");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,6 +58,7 @@ export default function Home() {
     setImageFile(null);
     setImagePreview(null);
     setSelectedStyle(null);
+    setCustomPrompt("");
     setGeneratedImage(null);
     setError(null);
     setStep("upload");
@@ -92,6 +94,7 @@ export default function Home() {
           imageBase64: base64,
           mimeType: imageFile.type,
           style: selectedStyle,
+          customPrompt: customPrompt.trim() || undefined,
         }),
       });
 
@@ -117,7 +120,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [imageFile, selectedStyle, openLoginDialog]);
+  }, [imageFile, selectedStyle, customPrompt, openLoginDialog]);
 
   const handleRegenerate = useCallback(() => {
     handleGenerate();
@@ -162,15 +165,14 @@ export default function Home() {
             <div key={key} className="flex items-center gap-2">
               {i > 0 && <div className="h-px w-8 bg-border" />}
               <span
-                className={`text-sm font-medium ${
-                  step === key
-                    ? "text-primary"
-                    : (key === "style" && step === "result") ||
-                        (key === "upload" &&
-                          (step === "style" || step === "result"))
-                      ? "text-muted-foreground"
-                      : "text-muted-foreground/50"
-                }`}
+                className={`text-sm font-medium ${step === key
+                  ? "text-primary"
+                  : (key === "style" && step === "result") ||
+                    (key === "upload" &&
+                      (step === "style" || step === "result"))
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/50"
+                  }`}
               >
                 {label}
               </span>
@@ -208,6 +210,32 @@ export default function Home() {
                 selectedStyle={selectedStyle}
                 onStyleSelect={handleStyleSelect}
               />
+              {/* Custom prompt input */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="custom-prompt"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Additional instructions{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </label>
+                <textarea
+                  id="custom-prompt"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="e.g. Use blue and white colors, make it more rounded, add a shadow effect..."
+                  className="resize-none w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={3}
+                  maxLength={500}
+                />
+                {customPrompt.length > 0 && (
+                  <p className="text-right text-xs text-muted-foreground">
+                    {customPrompt.length}/500
+                  </p>
+                )}
+              </div>
               {selectedStyle && step === "style" && (
                 <div className="flex justify-center">
                   <Button
