@@ -107,11 +107,16 @@ export function StyleSelector({
                   if (accessible) onStyleSelect(style.id);
                 }}
               >
-                <CardContent className="relative flex flex-col items-center gap-1.5 p-3">
+                <CardContent className="relative flex flex-col items-center gap-1.5 p-3 pt-4">
                   {!accessible && (
-                    <div className="absolute right-1.5 top-1.5">
-                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
+                    <>
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        PRO
+                      </span>
+                      <div className="absolute right-1.5 top-1.5">
+                        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                    </>
                   )}
                   <span
                     className="text-2xl"
@@ -131,11 +136,6 @@ export function StyleSelector({
                   <p className="text-center text-[11px] leading-tight text-muted-foreground">
                     {style.description}
                   </p>
-                  {!accessible && (
-                    <span className="mt-0.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      PRO
-                    </span>
-                  )}
                 </CardContent>
               </Card>
 
