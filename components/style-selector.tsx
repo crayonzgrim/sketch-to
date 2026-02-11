@@ -62,25 +62,27 @@ export function StyleSelector({
 
   return (
     <div className="space-y-4">
-      {/* Category tabs */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1">
-        {STYLE_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={cn(
-              "flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              activeCategory === cat.id
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <span className="block">{cat.name}</span>
-            <span className="block text-[10px] font-normal opacity-60">
-              {cat.description}
-            </span>
-          </button>
-        ))}
+      {/* Category tabs - horizontal scroll on mobile, full width on desktop */}
+      <div className="overflow-x-auto scrollbar-hide sm:overflow-x-visible -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div className="flex gap-1 rounded-lg bg-muted p-1 w-max sm:w-auto">
+          {STYLE_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "shrink-0 sm:flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                activeCategory === cat.id
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span className="block whitespace-nowrap">{cat.name}</span>
+              <span className="block whitespace-nowrap text-[10px] font-normal opacity-60">
+                {cat.description}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Style grid */}
