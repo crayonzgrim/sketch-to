@@ -92,7 +92,8 @@ export function DownloadOptions({
     } catch (err) {
       console.error("Download error:", err);
     } finally {
-      setIsProcessing(false);
+      // Brief cooldown to prevent rapid consecutive downloads
+      setTimeout(() => setIsProcessing(false), 1500);
     }
   };
 
