@@ -5,8 +5,10 @@ import { DownloadOptions } from "@/components/download-options";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { ImagePreview } from "@/components/image-preview";
+import { SketchCanvas } from "@/components/sketch-canvas";
 import { SketchUploader } from "@/components/sketch-uploader";
 import { StyleSelector } from "@/components/style-selector";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +26,7 @@ import { UsageIndicator } from "@/components/usage-indicator";
 import { fileToBase64 } from "@/lib/image-utils";
 import type { StyleType } from "@/lib/prompts";
 import { createClient } from "@/lib/supabase/client";
-import { Wand2 } from "lucide-react";
+import { Pencil, Upload, Wand2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -180,19 +182,55 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Step 1: Upload */}
+        {/* Step 1: Upload or Draw */}
         <section className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold">Upload your sketch</h2>
+            <h2 className="text-xl font-semibold">Your sketch</h2>
             <p className="text-sm text-muted-foreground">
-              Drop a rough sketch or drawing and we&apos;ll transform it
+              Upload an image or draw directly
             </p>
           </div>
-          <SketchUploader
-            onImageSelect={handleImageSelect}
-            selectedImage={imagePreview}
-            onClear={handleClearImage}
-          />
+
+          {imagePreview ? (
+            <div className="relative overflow-hidden rounded-lg border">
+              <img
+                src={imagePreview}
+                alt="Selected sketch"
+                className="h-auto max-h-80 w-full object-contain"
+              />
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8"
+                onClick={handleClearImage}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Tabs defaultValue="upload" className="w-full">
+              <TabsList className="w-full">
+                <TabsTrigger value="upload" className="flex-1 gap-1.5">
+                  <Upload className="h-4 w-4" />
+                  Upload
+                </TabsTrigger>
+                <TabsTrigger value="draw" className="flex-1 gap-1.5">
+                  <Pencil className="h-4 w-4" />
+                  Draw
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="upload">
+                <SketchUploader
+                  onImageSelect={handleImageSelect}
+                  selectedImage={null}
+                  onClear={handleClearImage}
+                />
+              </TabsContent>
+              <TabsContent value="draw">
+                <SketchCanvas onImageSelect={handleImageSelect} />
+              </TabsContent>
+            </Tabs>
+          )}
         </section>
 
         {/* Step 2: Style Selection */}
