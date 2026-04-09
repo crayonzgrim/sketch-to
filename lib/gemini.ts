@@ -15,7 +15,7 @@ export async function generateImage(
   customPrompt?: string
 ): Promise<GenerateImageResult> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-image",
+    model: "gemini-3-flash-preview-05-20",
     generationConfig: {
       // @ts-expect-error - responseModalities is supported but not in types yet
       responseModalities: ["TEXT", "IMAGE"],
