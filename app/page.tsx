@@ -1,6 +1,5 @@
 "use client";
 
-import { useLoginDialog } from "@/components/auth/login-dialog";
 import { DownloadOptions } from "@/components/download-options";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -9,25 +8,12 @@ import { SketchCanvas } from "@/components/sketch-canvas";
 import { SketchUploader } from "@/components/sketch-uploader";
 import { StyleSelector } from "@/components/style-selector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { KakaoAdFit } from "@/components/ui/kakao-adfit";
 import { Separator } from "@/components/ui/separator";
-import { UsageIndicator } from "@/components/usage-indicator";
 import { fileToBase64 } from "@/lib/image-utils";
 import type { StyleType } from "@/lib/prompts";
-import { createClient } from "@/lib/supabase/client";
 import { Pencil, Upload, Wand2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 type Step = "upload" | "style" | "result";
@@ -42,11 +28,7 @@ export default function Home() {
   const [generatedMimeType, setGeneratedMimeType] = useState("image/png");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [usageKey, setUsageKey] = useState(0);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [limitInfo, setLimitInfo] = useState<{ used: number; limit: number } | null>(null);
-  const { openLoginDialog } = useLoginDialog();
-  const router = useRouter();
 
   const handleImageSelect = useCallback((file: File, preview: string) => {
     setImageFile(file);
@@ -74,14 +56,6 @@ export default function Home() {
   const handleGenerate = useCallback(async () => {
     if (!imageFile || !selectedStyle) return;
 
-    // Check if user is logged in
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      openLoginDialog();
-      return;
-    }
-
     setIsGenerating(true);
     setError(null);
     setStep("result");
@@ -104,7 +78,6 @@ export default function Home() {
 
       if (!data.success) {
         if (response.status === 429) {
-          setLimitInfo({ used: data.used, limit: data.limit });
           setShowLimitDialog(true);
           setStep("style");
           return;
@@ -114,36 +87,34 @@ export default function Home() {
 
       setGeneratedImage(data.image);
       setGeneratedMimeType(data.mimeType || "image/png");
-      setUsageKey((prev) => prev + 1);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
+      setStep("style");
     } finally {
       setIsGenerating(false);
     }
-  }, [imageFile, selectedStyle, customPrompt, openLoginDialog]);
+  }, [imageFile, selectedStyle, customPrompt]);
 
-  const handleRegenerate = useCallback(() => {
-    handleGenerate();
-  }, [handleGenerate]);
-
-  const handleStartOver = useCallback(() => {
-    handleClearImage();
-  }, [handleClearImage]);
+  const handleReset = useCallback(() => {
+    setImageFile(null);
+    setImagePreview(null);
+    setSelectedStyle(null);
+    setCustomPrompt("");
+    setGeneratedImage(null);
+    setGeneratedMimeType("image/png");
+    setError(null);
+    setStep("upload");
+  }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
-
-      {/* 카카오 애드핏 - 모바일 상단 배너 */}
-      <div className="flex justify-center py-2 xl:hidden">
-        <KakaoAdFit unit="DAN-PCgGvqo856JhQXWz" width={320} height={100} />
-      </div>
-
-      {/* 카카오 애드핏 - 데스크탑 좌측 사이드바 */}
-      <div className="fixed left-4 top-1/2 z-20 hidden -translate-y-1/2 xl:block">
-        <KakaoAdFit unit="DAN-QOp1St1jjkkenvVA" width={160} height={600} />
+    <div className="flex min-h-screen flex-col">
+      {/* 고정 广告 - 데스크탑 상단 */}
+      <div className="fixed top-14 left-0 right-0 z-10 border-b bg-background/95 backdrop-blur xl:top-0">
+        <div className="mx-auto max-w-[970px] py-1">
+          <KakaoAdFit unit="DAN-Zky7O6GRyC8C1dm" width={970} height={50} />
+        </div>
       </div>
 
       {/* 카카오 애드핏 - 데스크탑 우측 사이드바 */}
@@ -152,11 +123,6 @@ export default function Home() {
       </div>
 
       <main className="container mx-auto max-w-3xl flex-1 px-4 py-8">
-        {/* Usage indicator */}
-        <div className="mb-4 flex justify-end">
-          <UsageIndicator refreshKey={usageKey} />
-        </div>
-
         {/* Step indicators */}
         <div className="mb-8 flex items-center justify-center gap-2">
           {[
@@ -167,14 +133,15 @@ export default function Home() {
             <div key={key} className="flex items-center gap-2">
               {i > 0 && <div className="h-px w-8 bg-border" />}
               <span
-                className={`text-sm font-medium ${step === key
-                  ? "text-primary"
-                  : (key === "style" && step === "result") ||
-                    (key === "upload" &&
-                      (step === "style" || step === "result"))
-                    ? "text-muted-foreground"
-                    : "text-muted-foreground/50"
-                  }`}
+                className={`text-sm font-medium ${
+                  step === key
+                    ? "text-primary"
+                    : (key === "style" && step === "result") ||
+                        (key === "upload" &&
+                          (step === "style" || step === "result"))
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/50"
+                }`}
               >
                 {label}
               </span>
@@ -182,171 +149,181 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Step 1: Upload or Draw */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold">Your sketch</h2>
-            <p className="text-sm text-muted-foreground">
-              Upload an image or draw directly
-            </p>
-          </div>
+        {step === "upload" && (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Upload Your Sketch
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Upload a sketch image to transform it into a professional image
+              </p>
+            </div>
 
-          {imagePreview ? (
-            <div className="relative overflow-hidden rounded-lg border">
-              <img
-                src={imagePreview}
-                alt="Selected sketch"
-                className="h-auto max-h-80 w-full object-contain"
-              />
+            <SketchUploader
+              onImageSelect={handleImageSelect}
+              selectedImage={imagePreview}
+              onClear={handleClearImage}
+            />
+
+            <div className="flex justify-center">
               <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 h-8 w-8"
-                onClick={handleClearImage}
+                size="lg"
+                className="cursor-pointer"
+                disabled={!imagePreview}
+                onClick={() => setStep("style")}
               >
-                <X className="h-4 w-4" />
+                <Wand2 className="mr-2 h-4 w-4" />
+                Continue to Style Selection
               </Button>
             </div>
-          ) : (
-            <Tabs defaultValue="upload" className="w-full">
-              <TabsList className="w-full">
-                <TabsTrigger value="upload" className="flex-1 gap-1.5">
-                  <Upload className="h-4 w-4" />
-                  Upload
-                </TabsTrigger>
-                <TabsTrigger value="draw" className="flex-1 gap-1.5">
-                  <Pencil className="h-4 w-4" />
-                  Draw
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="upload">
-                <SketchUploader
-                  onImageSelect={handleImageSelect}
-                  selectedImage={null}
-                  onClear={handleClearImage}
-                />
-              </TabsContent>
-              <TabsContent value="draw">
-                <SketchCanvas onImageSelect={handleImageSelect} />
-              </TabsContent>
-            </Tabs>
-          )}
-        </section>
-
-        {/* Step 2: Style Selection */}
-        {(step === "style" || step === "result") && imagePreview && (
-          <>
-            <Separator className="my-8" />
-            <section className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold">Choose a style</h2>
-                <p className="text-sm text-muted-foreground">
-                  Select how you want your sketch transformed
-                </p>
-              </div>
-              <StyleSelector
-                selectedStyle={selectedStyle}
-                onStyleSelect={handleStyleSelect}
-              />
-              {/* Custom prompt input */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="custom-prompt"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Additional instructions{" "}
-                  <span className="font-normal text-muted-foreground">
-                    (optional)
-                  </span>
-                </label>
-                <textarea
-                  id="custom-prompt"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="e.g. Use blue and white colors, make it more rounded, add a shadow effect..."
-                  className="resize-none w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={3}
-                  maxLength={500}
-                />
-                {customPrompt.length > 0 && (
-                  <p className="text-right text-xs text-muted-foreground">
-                    {customPrompt.length}/500
-                  </p>
-                )}
-              </div>
-              {selectedStyle && step === "style" && (
-                <div className="flex justify-center">
-                  <Button
-                    size="lg"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                  >
-                    <Wand2 className="mr-2 h-5 w-5" />
-                    Generate Image
-                  </Button>
-                </div>
-              )}
-            </section>
-          </>
+          </div>
         )}
 
-        {/* Step 3: Result */}
-        {step === "result" && (
-          <>
-            <Separator className="my-8" />
-            <section className="space-y-6">
+        {step === "style" && (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Choose a Style
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Select the style for your generated image
+              </p>
+            </div>
+
+            {imagePreview && (
               <ImagePreview
-                originalImage={imagePreview}
-                generatedImage={generatedImage}
-                generatedMimeType={generatedMimeType}
-                isGenerating={isGenerating}
-                onRegenerate={handleRegenerate}
+                image={imagePreview}
+                onClear={handleClearImage}
               />
+            )}
 
-              {error && (
-                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
+            <StyleSelector
+              selectedStyle={selectedStyle}
+              onStyleSelect={handleStyleSelect}
+            />
 
-              {generatedImage && (
-                <DownloadOptions
-                  generatedImage={generatedImage}
-                  generatedMimeType={generatedMimeType}
-                />
-              )}
+            <div className="space-y-2">
+              <label htmlFor="custom-prompt" className="text-sm font-medium">
+                Custom Prompt (optional)
+              </label>
+              <textarea
+                id="custom-prompt"
+                className="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="Add additional instructions for the image generation..."
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">
+                {customPrompt.length}/500
+              </p>
+            </div>
 
-              <div className="flex justify-center">
-                <Button variant="outline" onClick={handleStartOver}>
-                  Start Over
-                </Button>
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setStep("upload")}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button
+                className="flex-1 cursor-pointer"
+                disabled={!selectedStyle || isGenerating}
+                onClick={handleGenerate}
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="animate-spin mr-2">&#9203;</span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate Image
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-4 text-destructive">
+                {error}
               </div>
-            </section>
-          </>
+            )}
+          </div>
+        )}
+
+        {step === "result" && (
+          <div className="space-y-8">
+            {generatedImage && (
+              <ImagePreview
+                image={`data:${generatedMimeType};base64,${generatedImage}`}
+                onClear={handleReset}
+              />
+            )}
+
+            {generatedImage && (
+              <DownloadOptions
+                image={generatedImage}
+                mimeType={generatedMimeType}
+              />
+            )}
+
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-4 text-destructive">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => {
+                  setGeneratedImage(null);
+                  setStep("style");
+                }}
+              >
+                <Wand2 className="mr-2 h-4 w-4" />
+                Change Style
+              </Button>
+              <Button
+                className="cursor-pointer"
+                disabled={isGenerating}
+                onClick={handleGenerate}
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="animate-spin mr-2">&#9203;</span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Regenerate
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="text-center">
+              <Button
+                variant="link"
+                className="cursor-pointer"
+                onClick={handleReset}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Start Over
+              </Button>
+            </div>
+          </div>
         )}
       </main>
 
       <Footer />
-
-      {/* Usage Limit Alert Dialog */}
-      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Daily Limit Reached</AlertDialogTitle>
-            <AlertDialogDescription>
-              You&apos;ve used all {limitInfo?.limit} generations for today
-              ({limitInfo?.used}/{limitInfo?.limit}).
-              Upgrade your plan to get more daily generations.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.push("/pricing")}>
-              View Pricing
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

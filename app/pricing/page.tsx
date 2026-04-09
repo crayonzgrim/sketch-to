@@ -1,25 +1,9 @@
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { PricingCards } from '@/components/pricing/pricing-cards'
-import { createClient } from '@/lib/supabase/server'
 import { MessageCircle, Sparkles } from 'lucide-react'
 
 export default async function PricingPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  let currentPlan: string | undefined
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', user.id)
-      .single()
-    currentPlan = profile?.plan
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -58,7 +42,7 @@ export default async function PricingPage() {
             fees, cancel anytime.
           </p>
         </div>
-        <PricingCards currentPlan={currentPlan} isLoggedIn={!!user} />
+        <PricingCards />
         <p className="text-sm text-muted-foreground text-center max-w-md">
           All plans include access to every style. <br />
           Usage resets daily at midnight UTC.

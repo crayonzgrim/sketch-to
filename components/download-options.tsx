@@ -25,13 +25,13 @@ import {
 } from "@/lib/image-utils";
 
 interface DownloadOptionsProps {
-  generatedImage: string;
-  generatedMimeType: string;
+  image: string;
+  mimeType: string;
 }
 
 export function DownloadOptions({
-  generatedImage,
-  generatedMimeType,
+  image,
+  mimeType,
 }: DownloadOptionsProps) {
   const [format, setFormat] = useState<ImageFormat>("png");
   const [size, setSize] = useState<SizeOption>("256");
@@ -64,16 +64,16 @@ export function DownloadOptions({
     try {
       if (format === "ico") {
         const dimension = parseInt(size) || 32;
-        const blob = await generateIco(generatedImage, generatedMimeType, dimension);
+        const blob = await generateIco(image, mimeType, dimension);
         downloadBlob(blob, `sketchto-${dimension}x${dimension}.ico`);
       } else {
-        let processedImage = generatedImage;
+        let processedImage = image;
 
         if (size !== "original") {
           const dimension = parseInt(size);
           processedImage = await resizeImage(
             processedImage,
-            generatedMimeType,
+            mimeType,
             dimension,
             dimension
           );
@@ -81,7 +81,7 @@ export function DownloadOptions({
 
         processedImage = await convertToFormat(
           processedImage,
-          generatedMimeType,
+          mimeType,
           format
         );
 
