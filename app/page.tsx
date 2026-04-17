@@ -153,30 +153,50 @@ export default function Home() {
           <div className="space-y-8">
             <div className="text-center">
               <h2 className="text-2xl font-bold tracking-tight">
-                Upload Your Sketch
+                Create Your Sketch
               </h2>
               <p className="mt-2 text-muted-foreground">
-                Upload a sketch image to transform it into a professional image
+                Upload an image or draw directly to transform it into a professional design
               </p>
             </div>
 
-            <SketchUploader
-              onImageSelect={handleImageSelect}
-              selectedImage={imagePreview}
-              onClear={handleClearImage}
-            />
+            <Tabs defaultValue="upload" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload
+                </TabsTrigger>
+                <TabsTrigger value="draw" className="flex items-center gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Draw
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="flex justify-center">
-              <Button
-                size="lg"
-                className="cursor-pointer"
-                disabled={!imagePreview}
-                onClick={() => setStep("style")}
-              >
-                <Wand2 className="mr-2 h-4 w-4" />
-                Continue to Style Selection
-              </Button>
-            </div>
+              <TabsContent value="upload" className="space-y-4">
+                <SketchUploader
+                  onImageSelect={handleImageSelect}
+                  selectedImage={imagePreview}
+                  onClear={handleClearImage}
+                />
+              </TabsContent>
+
+              <TabsContent value="draw" className="space-y-4">
+                <SketchCanvas onImageSelect={handleImageSelect} />
+              </TabsContent>
+            </Tabs>
+
+            {imagePreview && (
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
+                  className="cursor-pointer"
+                  onClick={() => setStep("style")}
+                >
+                  <Wand2 className="mr-2 h-4 w-4" />
+                  Continue to Style Selection
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
