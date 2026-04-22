@@ -1,9 +1,28 @@
 'use client'
 
-import { Sparkles } from 'lucide-react'
+import { Sparkles, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useSession, signIn, signOut } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 
 export function Header() {
+  const { data: session } = useSession()
+  const [usage, setUsage] = useState<number>(0)
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/usage')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setUsage(data.usage)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [session?.user?.id])
+
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
@@ -22,6 +41,30 @@ export function Header() {
           >
             Pricing
           </Link>
+
+          {session?.user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">
+                {usage}/3 today
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => signOut()}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => signIn('github')}
+              size="sm"
+            >
+              Sign in
+            </Button>
+          )}
         </div>
       </div>
     </header>

@@ -15,10 +15,21 @@ import { fileToBase64 } from "@/lib/image-utils";
 import type { StyleType } from "@/lib/prompts";
 import { Pencil, Upload, Wand2, X } from "lucide-react";
 import { useCallback, useState } from "react";
+import { useSession, signIn } from "next-auth/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Step = "upload" | "style" | "result";
 
 export default function Home() {
+  const { data: session } = useSession();
   const [step, setStep] = useState<Step>("upload");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -29,6 +40,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   const handleImageSelect = useCallback((file: File, preview: string) => {
     setImageFile(file);
@@ -55,6 +67,11 @@ export default function Home() {
 
   const handleGenerate = useCallback(async () => {
     if (!imageFile || !selectedStyle) return;
+
+    if (!session?.user?.id) {
+      setShowSignInDialog(true);
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
@@ -342,6 +359,33 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Daily Limit Reached</AlertDialogTitle>
+          <AlertDialogDescription>
+            You have reached your daily limit of 3 image generations. Please try again tomorrow.
+          </AlertDialogDescription>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Sign in required</AlertDialogTitle>
+          <AlertDialogDescription>
+            Sign in to generate your image. You get 3 free generations per day.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => signIn("github")}>
+              Sign in with GitHub
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Footer />
     </div>

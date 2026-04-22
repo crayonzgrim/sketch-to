@@ -1,11 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateImage } from "@/lib/gemini";
 import { type StyleType, STYLE_OPTIONS } from "@/lib/prompts";
+import { auth } from "@/lib/auth";
+import { checkUsageAllowed, incrementUsage, getTodayUsage } from "@/lib/usage";
 
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const allowed = await checkUsageAllowed(session.user.id);
+    if (!allowed) {
+      const usage = await getTodayUsage(session.user.id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Daily limit reached. 3 requests per day.",
+          usage,
+          limit: 3,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { imageBase64, mimeType, style, customPrompt } = body as {
       imageBase64: string;
@@ -50,6 +74,8 @@ export async function POST(request: NextRequest) {
       style,
       sanitizedPrompt
     );
+
+    await incrementUsage(session.user.id);
 
     return NextResponse.json({
       success: true,
