@@ -1,8 +1,12 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T04:27:05.929Z",
+  "lastUpdated": "2026-04-22T13:34:18.746Z",
   "activeFeatures": [
-    "sketch-to"
+    "sketch-to",
+    "generate",
+    "usage",
+    "signin",
+    "ui"
   ],
   "primaryFeature": "sketch-to",
   "features": {
@@ -15,9 +19,61 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-11T05:49:42.458Z",
-        "lastUpdated": "2026-02-22T04:27:05.929Z"
+        "lastUpdated": "2026-04-22T13:34:18.746Z"
       },
       "lastFile": "/Volumes/SSD/crayonzgrim-dev/project/sketch-to/app/page.tsx"
+    },
+    "generate": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-17T05:07:26.189Z",
+        "lastUpdated": "2026-04-17T05:07:33.268Z"
+      },
+      "lastFile": "/Volumes/SSD/crayonzgrim-dev/project/sketch-to/app/api/generate/route.ts"
+    },
+    "usage": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-17T05:21:52.675Z",
+        "lastUpdated": "2026-04-17T05:21:52.675Z"
+      },
+      "lastFile": "/Volumes/SSD/crayonzgrim-dev/project/sketch-to/app/api/usage/route.ts"
+    },
+    "signin": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-17T05:22:53.025Z",
+        "lastUpdated": "2026-04-17T06:09:01.418Z"
+      },
+      "lastFile": "/Volumes/SSD/crayonzgrim-dev/project/sketch-to/app/auth/signin/page.tsx"
+    },
+    "ui": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-22T13:31:28.250Z",
+        "lastUpdated": "2026-04-22T13:31:28.250Z"
+      },
+      "lastFile": "/Volumes/SSD/crayonzgrim-dev/project/sketch-to/components/ui/kakao-adfit.tsx"
     }
   },
   "pipeline": {
@@ -28,7 +84,7 @@
   "session": {
     "startedAt": "2026-02-11T05:46:41.322Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T04:27:05.929Z"
+    "lastActivity": "2026-04-22T13:34:18.746Z"
   },
   "history": [
     {
@@ -69,6 +125,240 @@
     },
     {
       "timestamp": "2026-02-22T04:27:05.929Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-16T12:24:48.629Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-16T12:26:00.122Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T02:11:06.947Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:06:57.716Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:01.408Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:07.671Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:13.943Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:16.948Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:26.189Z",
+      "feature": "generate",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:30.009Z",
+      "feature": "generate",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:33.268Z",
+      "feature": "generate",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:40.583Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:47.433Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:07:58.898Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:08:02.650Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:08:07.116Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:08:17.741Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:21:52.675Z",
+      "feature": "usage",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:21:57.092Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:22:00.782Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:22:53.025Z",
+      "feature": "signin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:22:57.495Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:24:43.570Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:24:51.903Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:26:42.065Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:34:21.638Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:34:25.584Z",
+      "feature": "signin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T05:34:34.632Z",
+      "feature": "signin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T06:09:01.418Z",
+      "feature": "signin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T06:51:37.584Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T06:51:43.994Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T06:51:49.318Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-17T06:51:53.513Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:31:28.250Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:33:43.908Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:33:54.010Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:33:58.422Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:34:08.615Z",
+      "feature": "sketch-to",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-22T13:34:18.746Z",
       "feature": "sketch-to",
       "phase": "do",
       "action": "updated"
