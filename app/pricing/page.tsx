@@ -1,12 +1,10 @@
 import { Footer } from '@/components/footer'
-import { Header } from '@/components/header'
 import { PricingCards } from '@/components/pricing/pricing-cards'
 import { MessageCircle, Sparkles } from 'lucide-react'
 
 export default async function PricingPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       <main className="flex flex-col items-center gap-12 py-20 px-4">
         {/* Interest banner */}
         <div className="w-full max-w-2xl rounded-lg border border-primary/20 bg-primary/5 p-5 text-center">

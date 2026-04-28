@@ -4,15 +4,12 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
 import Link from "next/link";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import Image from "next/image";
 
 export default function SignInPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
