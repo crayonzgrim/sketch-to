@@ -128,7 +128,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* 고정 广告 - 데스크탑 상단 */}
-      <div className="fixed top-14 left-0 right-0 z-10 border-b bg-background/95 backdrop-blur xl:top-0">
+      <div className="fixed top-14 left-0 right-0 z-10 bg-background/95 backdrop-blur xl:top-0">
         <div className="mx-auto max-w-[970px] py-1">
           <KakaoAdFit unit="DAN-Zky7O6GRyC8C1dm" width={970} height={50} />
         </div>
